@@ -20,25 +20,7 @@ class MyBot(MyBotBase):
   def get_other(self):
     return "hello"
   
-  def desc(self):
-    mt5.initialize()
 
-    symbol = "GOLD#"
-
-    leverage = mt5.account_info().leverage
-    print(f"LEVERAGE: {leverage}")
-    
-    trade_size = mt5.symbol_info(symbol).trade_contract_size
-    print(f"TRADE SIZE: {trade_size}")
-    
-    price = (mt5.symbol_info(symbol).ask + mt5.symbol_info(symbol).bid)/2
-    print(f"PRICE: {price}")
-    
-    min_lot = mt5.symbol_info(symbol).volume_min
-    print(f"MIN LOT: {min_lot}")
-    
-    max_lot = mt5.symbol_info(symbol).volume_max
-    print(f"MAX LOT: {max_lot}")
 
   def pts(self):
     mt5.initialize()

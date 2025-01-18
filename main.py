@@ -3,7 +3,9 @@ from my_bot import MyBot
 
 m = MyBot()
 
-m.get_symbols("USD")
+# m.get_symbols("BTC")
+# m.desc()
+m.get_position_count()
 
-# print(str)
-# xx 
+# s = "abc"
+# print(type(s))
