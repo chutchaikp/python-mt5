@@ -141,16 +141,87 @@ class MyBotBase(ABC):
           # print(type(position))          
           print(f"{position.symbol} {position.type} {position.volume}" ) 
           # print(position)
+        return positions
     else:
       positions=mt5.positions_get(symbol=symbol)
       print("OK---", len(positions))
+      return positions
+    
+    return None
     
     
   def position_close_by_ticket(self):
     pass
   
-  def position_exist(self, symbol = "GOLD#", order_type = mt5.ORDER_TYPE_BUY):
+  def position_exist(self, order_type = mt5.ORDER_TYPE_BUY, symbol = None ):
+    positions = self.get_positions(symbol=symbol)
+    # 0 BUY
+    # 1 SELL    
+    print("len: ", len(positions))
+    count = 0
+    for p in positions:
+      if p.type == 1:
+        count = count + 1
+    
+    print(f"sell: {count}")    
+
     return True
+  
+  def order_check(self, order_type = mt5.ORDER_TYPE_BUY, symbol=None, sl = 0):
+    # prepare the request structure
+    # symbol="GOLD#"
+    mt5.initialize()
+    
+    symbol_info = mt5.symbol_info(symbol)  
+    if symbol_info is None:
+      print(symbol, "not found, can not call order_check()")
+      # mt5.shutdown()
+      quit()
+    
+    # if the symbol is unavailable in MarketWatch, add it
+    if not symbol_info.visible:
+      print(symbol, "is not visible, trying to switch on")
+      if not mt5.symbol_select(symbol,True):
+          print("symbol_select({}}) failed, exit",symbol)
+          mt5.shutdown()
+          quit()
+        
+    # prepare the request
+    spread = abs( mt5.symbol_info_tick(symbol).bid-mt5.symbol_info_tick(symbol).ask )
+    # sl must greater than abs(bid - ask)    
+    point=mt5.symbol_info(symbol).point
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": symbol,
+        "volume": 1.0,
+        "type": mt5.ORDER_TYPE_BUY,
+        "price": mt5.symbol_info_tick(symbol).ask,
+        "sl": mt5.symbol_info_tick(symbol).ask-spread,
+        "tp": mt5.symbol_info_tick(symbol).ask+spread,
+        "deviation": 20,
+        "magic": 234000,
+        "comment": "python script",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+    
+    # perform the check and display the result 'as is'
+    result = mt5.order_check(request)
+    print(result)
+    print()
+    
+    result_dict=result._asdict()
+    retcode = result_dict.get("retcode")
+    
+    print( f"retcode is {retcode}"  )
+    print(f" {order_type} price: {mt5.symbol_info_tick(symbol).ask} sl: {mt5.symbol_info_tick(symbol).ask-spread} tp: {mt5.symbol_info_tick(symbol).ask+spread} ")
+    print(f"spread: {mt5.symbol_info_tick(symbol).bid-mt5.symbol_info_tick(symbol).ask}")
+    
+  def get_point(self, symbol):
+    mt5.initialize()
+    point=mt5.symbol_info(symbol).point
+    print(f"point: {point}")
+    
         
   @abstractmethod
   def buy(self):
@@ -159,3 +230,9 @@ class MyBotBase(ABC):
   @abstractmethod
   def sell(self):
     pass
+
+
+  @abstractmethod
+  def execute(self):
+    pass  
+  
