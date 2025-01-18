@@ -1,3 +1,8 @@
 2025-01-18 13:32:44,444 INFO -> get_symbols has been accessed!
 2025-01-18 13:41:49,315 INFO -> get_symbols has been accessed!
 2025-01-18 13:55:37,700 INFO -> get_symbols has been accessed!
+2025-01-18 14:50:37,490 INFO -> get_symbols has been accessed!
+2025-01-18 14:50:54,962 ERROR -> TypeError('positions_total() takes no arguments (1 given)')
+2025-01-18 15:03:55,314 ERROR -> TypeError('positions_total() takes no arguments (1 given)')
+2025-01-18 15:06:57,548 ERROR -> TypeError('positions_total() takes no arguments (1 given)')
+2025-01-18 15:09:51,061 ERROR -> TypeError('positions_total() takes no arguments (1 given)')
