@@ -15,7 +15,7 @@ class MyBotBase(ABC):
   def __init__(self):
     pass
   
-  def get_symbols(self, ticker = ""):
+  def symbols_get(self, ticker = ""):
     logging.info("get_symbols has been accessed!")
     mt5.initialize()        
     if len(ticker) > 0:
@@ -87,9 +87,10 @@ class MyBotBase(ABC):
       print("MT5 init failed :(")
       
   
+  # ----------------{    
+  # ----------------}
   
-  # --------------------------
-  def get_position_all_count(self):
+  def position_get_all_count(self):
     try:
       mt5.initialize()
       positions_total=mt5.positions_total()
@@ -102,7 +103,7 @@ class MyBotBase(ABC):
       print( repr(ex) )
       
   #  = "GOLD#"  
-  def get_position_count(self, symbol=None):
+  def position_get_count(self, symbol=None):
     try:
       mt5.initialize()
       print(symbol)
@@ -127,7 +128,7 @@ class MyBotBase(ABC):
       logging.error( repr(ex) )
       print( repr(ex) )
   
-  def get_positions(self, symbol=None ):
+  def positions_get(self, symbol=None ):
     mt5.initialize()
     if symbol is None:
       # "GOLD#"
@@ -139,8 +140,8 @@ class MyBotBase(ABC):
           # 0 BUY position, 1 SELL position
           # if position.type == 1:                      
           # print(type(position))          
-          print(f"{position.symbol} {position.type} {position.volume}" ) 
-          # print(position)
+          # print(f"ticket: {position.ticket} {position.symbol} {position.type} {position.volume}" ) 
+          print(position)
         return positions
     else:
       positions=mt5.positions_get(symbol=symbol)
@@ -148,13 +149,74 @@ class MyBotBase(ABC):
       return positions
     
     return None
+  
+  def type_check(self):
+    print(f"ORDER_TYPE_BUY: {mt5.ORDER_TYPE_BUY}") 
+    print(f"POSITION_TYPE_BUY: {mt5.POSITION_TYPE_BUY}") 
     
+    print(f"ORDER_TYPE_SELL: {mt5.ORDER_TYPE_SELL}") 
+    print(f"POSITION_TYPE_SELL: {mt5.POSITION_TYPE_SELL}") 
     
-  def position_close_by_ticket(self):
-    pass
+    print(f"ORDER_TYPE_BUY==POSITION_TYPE_BUY -> {mt5.ORDER_TYPE_BUY==mt5.POSITION_TYPE_BUY}")
+    
+  
+  def position_get_by(self, symbol=None, position_type=mt5.POSITION_TYPE_BUY ):
+    mt5.initialize()
+    if symbol is None:            
+      return None
+    else:
+      positions=mt5.positions_get(symbol=symbol)
+      if positions is None:
+        return None
+      filterPositions = []
+      for p in positions:
+        if p.type == position_type:
+          filterPositions.append(p)
+          
+      return filterPositions
+      
+  # close position
+  def position_close(self, position):
+    tick = mt5.symbol_info_tick(position.symbol)
+
+    request = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "position": position.ticket,
+        "symbol": position.symbol,
+        "volume": position.volume,
+        "type": mt5.ORDER_TYPE_BUY if position.type == 1 else mt5.ORDER_TYPE_SELL,
+        "price": tick.ask if position.type == 1 else tick.bid,  
+        "deviation": 20,
+        # "magic": position.magic,
+        # "magic": 555,
+        # "comment": "python script - position close",
+        # "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+
+    # check first
+    order_check_result = mt5.order_check(request)
+    print("---order_check result---{")
+    print(order_check_result)
+    print("---order_check result---}")
+    print()
+    if order_check_result is not None:
+      remove_result = mt5.order_send(request)      
+      return remove_result
+    
+    return None    
+        
+  def position_close_by_ticket(self, ticket):
+    try:
+      if ticket is None:
+        print(f"ticket param is required")
+      else:
+        pass
+    except Exception as ex:
+      print( repr(ex) )
   
   def position_exist(self, order_type = mt5.ORDER_TYPE_BUY, symbol = None ):
-    positions = self.get_positions(symbol=symbol)
+    positions = self.positions_get(symbol=symbol)
     # 0 BUY
     # 1 SELL    
     print("len: ", len(positions))
@@ -230,7 +292,6 @@ class MyBotBase(ABC):
   @abstractmethod
   def sell(self):
     pass
-
 
   @abstractmethod
   def execute(self):
